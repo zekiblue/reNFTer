@@ -33,11 +33,11 @@ function MenuItems() {
       <Menu.Item key="/erc20transfers">
         <NavLink to="/erc20transfers">💸 Transfers</NavLink>
       </Menu.Item>
-      <Menu.Item key="/nftBalance">
-        <NavLink to="/nftBalance">💱 Marketplace</NavLink>
+      <Menu.Item key="/marketplace">
+        <NavLink to="/marketplace">💱 Marketplace</NavLink>
       </Menu.Item>
-      <Menu.Item key="/nftBalance">
-        <NavLink to="/nftBalance">🌯 My wrapped NFTs</NavLink>
+      <Menu.Item key="/wrapped-nfts">
+        <NavLink to="/wrapped-nfts">🌯 My wrapped NFTs</NavLink>
       </Menu.Item>
       <Menu.Item key="/nftBalance">
         <NavLink to="/nftBalance">🖼 My NFTs</NavLink>
