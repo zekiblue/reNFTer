@@ -9,8 +9,9 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/IERC1155MetadataURI.sol
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-import "@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
-
+// TODO:
+// - Change this to be ERC1155 instead of ERC721
+// - Prevent wrapping already wrapped NFTs
 contract wNFT is ERC721, AccessControlEnumerable {
   using Counters for Counters.Counter;
 
@@ -28,8 +29,9 @@ contract wNFT is ERC721, AccessControlEnumerable {
 
   bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
   bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+  bytes32 public constant SUPERADMIN_ROLE = keccak256("SUPERADMIN_ROLE");
 
-  event WrappedNFTCreate(address indexed creator, address indexed contractAddress, uint originaId, uint indexed internalId);
+  event CreateWrappedNFT(address indexed creator, address indexed contractAddress, uint originaId, uint indexed internalId);
   constructor() ERC721("Wrapped NFTs", "wNFT") {
     _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
   }
@@ -58,7 +60,7 @@ contract wNFT is ERC721, AccessControlEnumerable {
 
     _safeMint(_to, tokenId);
 
-    emit WrappedNFTCreate(_to, _contractAddress, _tokenId, tokenId);
+    emit CreateWrappedNFT(_to, _contractAddress, _tokenId, tokenId);
   }
 
   /// @notice Checks for type and returns original (non-wrapped) token URI
@@ -87,14 +89,48 @@ contract wNFT is ERC721, AccessControlEnumerable {
     return beneficiary[originalTokenDataTokenId];
   }
 
+  /// @notice Returns data about original tokenCounter
+  /// @param _tokenId Wrapped token ID
   function getOriginalTokenData(uint _tokenId) public view returns(originalTokenData memory) {
     string memory originalTokensId = tokenIdsToOriginalTokenIds[_tokenId];
     return originalTokens[originalTokensId];
   }
 
-  function burn(uint _tokenId) public {
-    require(ownerOf(_tokenId) == msg.sender || hasRole(BURNER_ROLE, msg.sender), "Not allowed");
+  // TODO: return original contract address, token id and superowner so we can use it in Refter contract
+  // during unwrap and send it back to original user
+  function burn(uint _tokenId) public returns(address, address, uint256) {
+    require(hasRole(BURNER_ROLE, msg.sender), "Not allowed");
+    originalTokenData memory returnData = getOriginalTokenData(_tokenId);
     _burn(_tokenId);
+    return (returnData.superOwner, returnData.contractAddress, returnData.externalTokenId);
+  }
+
+  function transferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) public virtual override {
+    //solhint-disable-next-line max-line-length
+    require(_isApprovedOrOwner(_msgSender(), tokenId) || hasRole(SUPERADMIN_ROLE, _msgSender()), "ERC721: transfer caller is not owner nor approved nor superadmin");
+    _transfer(from, to, tokenId);
+  }
+
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) public virtual override {
+    safeTransferFrom(from, to, tokenId, "");
+  }
+  
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes memory _data
+  ) public virtual override {
+    require(_isApprovedOrOwner(_msgSender(), tokenId) || hasRole(SUPERADMIN_ROLE, _msgSender()), "ERC721: transfer caller is not owner nor approved nor superadmin");
+    _safeTransfer(from, to, tokenId, _data);
   }
 
   function _beforeTokenTransfer(

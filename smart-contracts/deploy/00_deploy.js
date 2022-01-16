@@ -6,11 +6,20 @@ module.exports = async ({
   const {deployer} = await getNamedAccounts();
 
   // TODO: Move args to config or .env eventually
-  await deploy('wNFT', {
+  const deployResult = await deploy('wNFT', {
     from: deployer,
     // gasLimit: 4000000,
     args: [],
     log: true
   });
+
+  // console.log("deployResult", deployResult)
+
+  await deploy('Renfter', {
+    from: deployer,
+    // gasLimit: 4000000,
+    args: [deployResult.address],
+    log: true
+  });
 };
-module.exports.tags = ['wNFT'];
+module.exports.tags = ['wNFT', 'Renfter'];

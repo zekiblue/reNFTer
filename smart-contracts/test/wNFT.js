@@ -105,7 +105,9 @@ describe("wNFT", function () {
     await erc721NFT.mint(owner.address, 1);
 
     const MINTER_ROLE = ethers.utils.id("MINTER_ROLE");
+    const BURNER_ROLE = ethers.utils.id("BURNER_ROLE");
     await wNFT.grantRole(MINTER_ROLE, owner.address);
+    await wNFT.grantRole(BURNER_ROLE, owner.address);
     await wNFT.mint(owner.address, erc721NFT.address, 1);
 
     await expect(wNFT.connect(account1).burn(1)).to.be.revertedWith("Not allowed");

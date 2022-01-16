@@ -27,6 +27,12 @@ module.exports = {
       tags: ["test", "local"],
       // chainId: 31337
     },
+    polygonMumbai: {
+      url: process.env.ALCHEMY_POLYGON_MUMBAI_RPC_URL,
+      accounts: {
+        mnemonic: process.env.DEV_MNEMONIC
+      }
+    },
   },
   namedAccounts: {
     deployer: {
